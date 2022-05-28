@@ -307,17 +307,6 @@ app.put("/reset-password", async (req, res) => {
     }
 });
 
-app.post("/movies", async (req, res) => {
-    try {
-        const movies = client.db("sample_mflix").collection("movies");
-        // findOne() returns `null` if no such document exists
-        const movie = await movies.findOne({ title: req.body.query });
-        res.send(movie ?? {});
-    } catch (error) {
-        res.status(503).send({ error: error });
-    }
-});
-
 app.listen(PORT, () => {
     console.log(`listening on http://localhost:${PORT}`);
 });

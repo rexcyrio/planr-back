@@ -12,7 +12,7 @@ const nodemailer = require("nodemailer");
 const { convert } = require("html-to-text");
 require("dotenv").config();
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const client = new MongoClient(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,

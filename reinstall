@@ -1,0 +1,3 @@
+npm install express express-session bcrypt mongodb connect-mongo passport passport-local
+
+npm install --save-dev dotenv nodemon eslint

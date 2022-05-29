@@ -10,7 +10,10 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const nodemailer = require("nodemailer");
 const { convert } = require("html-to-text");
+const cors = require("cors");
 require("dotenv").config();
+
+app.use(cors());
 
 const PORT = process.env.PORT || 3001;
 const client = new MongoClient(process.env.MONGODB_URI, {
@@ -114,7 +117,6 @@ app.post("/login", function (req, res, next) {
     "local",
     (function (err, user) {
       if (err) {
-        console.log(err);
         return next(err); // will generate a 500 error
       }
       // Generate a JSON response reflecting signup

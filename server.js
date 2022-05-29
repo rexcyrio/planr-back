@@ -109,13 +109,24 @@ app.get("/", (req, res) => {
   res.send("Express server is online");
 });
 
-app.post(
-  "/login",
-  passport.authenticate("local", {
-    successRedirect: "/login-success",
-    failureRedirect: "/login-failure",
-  })
-);
+app.post("/login", function (req, res, next) {
+  passport.authenticate(
+    "local",
+    (function (err, user) {
+      if (err) {
+        return next(err); // will generate a 500 error
+      }
+      // Generate a JSON response reflecting signup
+      if (!user) {
+        return res.send({ login_success: false, loggedInUsername: null });
+      }
+      return res.send({
+        login_success: true,
+        loggedInUsername: req.user.username,
+      });
+    })(req, res, next)
+  );
+});
 
 app.get("/login-success", (req, res) => {
   res.send({ login_success: true, loggedInUsername: req.user.username });

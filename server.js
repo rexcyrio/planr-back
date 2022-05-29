@@ -112,19 +112,27 @@ app.get("/", (req, res) => {
 });
 
 app.post("/login", function (req, res, next) {
+  console.log("before");
+  console.log(req);
+  console.log(req.body);
   passport.authenticate(
     "local",
     (function (err, user) {
+      console.log(user);
       if (err) {
+        console.log(err);
         return next(err); // will generate a 500 error
       }
+      console.log("no error");
       // Generate a JSON response reflecting signup
       if (!user) {
+        console.log("no user");
         return res.send({ login_success: false, loggedInUsername: null });
       }
+      console.log("user available");
       return res.send({
         login_success: true,
-        loggedInUsername: req.user.username,
+        loggedInUsername: user.username,
       });
     })(req, res, next)
   );

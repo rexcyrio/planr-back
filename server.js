@@ -111,11 +111,11 @@ app.get("/", (req, res) => {
   res.send("Express server is online");
 });
 
-app.post("/login", passport.authenticate("local"), function (req, res) {
+app.post("/api/login", passport.authenticate("local"), function (req, res) {
   res.send({ login_success: true, loggedInUsername: req.user.username });
 });
 
-app.post("/is-authenticated", (req, res) => {
+app.post("/api/is-authenticated", (req, res) => {
   const t = req?.user?.username;
   const loggedInUsername = t === undefined ? null : t;
 
@@ -125,7 +125,7 @@ app.post("/is-authenticated", (req, res) => {
   });
 });
 
-app.post("/is-username-available", async (req, res) => {
+app.post("/api/is-username-available", async (req, res) => {
   try {
     const { username } = req.body;
     const mycollection = client.db("mydb").collection("mycollection");
@@ -136,7 +136,7 @@ app.post("/is-username-available", async (req, res) => {
   }
 });
 
-app.post("/signup", async (req, res) => {
+app.post("/api/signup", async (req, res) => {
   try {
     const { username, password } = req.body;
     const mycollection = client.db("mydb").collection("mycollection");
@@ -154,7 +154,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-app.delete("/logout", (req, res) => {
+app.delete("/api/logout", (req, res) => {
   req.session.destroy(() => {
     res.clearCookie("connect.sid");
     res.send({ logout_success: true });
@@ -167,7 +167,7 @@ app.listen(PORT, () => {
 
 // ===========================================================================
 
-app.post("/request-password-reset", async (req, res) => {
+app.post("/api/request-password-reset", async (req, res) => {
   try {
     const { email } = req.body;
     const mycollection = client.db("mydb").collection("mycollection");
@@ -245,7 +245,7 @@ async function sendEmail(toEmailAddress, resetPasswordLink) {
   // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
 }
 
-app.post("/verify-password-reset-credentials", async (req, res) => {
+app.post("/api/verify-password-reset-credentials", async (req, res) => {
   try {
     const { _id, token } = req.body;
     const mycollection = client.db("mydb").collection("mycollection");
@@ -284,7 +284,7 @@ app.post("/verify-password-reset-credentials", async (req, res) => {
   }
 });
 
-app.put("/reset-password", async (req, res) => {
+app.put("/api/reset-password", async (req, res) => {
   try {
     const { _id, newPassword } = req.body;
     const mycollection = client.db("mydb").collection("mycollection");

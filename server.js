@@ -114,6 +114,7 @@ app.post("/login", function (req, res, next) {
     "local",
     (function (err, user) {
       if (err) {
+        console.log(err);
         return next(err); // will generate a 500 error
       }
       // Generate a JSON response reflecting signup

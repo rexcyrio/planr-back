@@ -115,14 +115,6 @@ app.post("/login", passport.authenticate("local"), function (req, res) {
   res.send({ login_success: true, loggedInUsername: req.user.username });
 });
 
-app.get("/login-success", (req, res) => {
-  res.send({ login_success: true, loggedInUsername: req.user.username });
-});
-
-app.get("/login-failure", (req, res) => {
-  res.send({ login_success: false, loggedInUsername: null });
-});
-
 app.post("/is-authenticated", (req, res) => {
   const t = req?.user?.username;
   const loggedInUsername = t === undefined ? null : t;

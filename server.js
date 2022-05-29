@@ -113,7 +113,7 @@ app.get("/", (req, res) => {
 
 app.post(
   "/login",
-  passport.authenticate("local", { failureRedirect: "/login-failure" }),
+  passport.authenticate("local", { failureRedirect: "/login" }),
   function (req, res) {
     console.log("success");
     res.send({ login_success: true, loggedInUsername: req.user.username });

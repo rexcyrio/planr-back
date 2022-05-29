@@ -113,7 +113,6 @@ app.get("/", (req, res) => {
 
 app.post("/login", function (req, res, next) {
   console.log("before");
-  console.log(req.body);
   passport.authenticate(
     "local",
     (function (err, user) {

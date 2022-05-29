@@ -111,14 +111,9 @@ app.get("/", (req, res) => {
   res.send("Express server is online");
 });
 
-app.post(
-  "/login",
-  passport.authenticate("local", { failureRedirect: "/login" }),
-  function (req, res) {
-    console.log("success");
-    res.send({ login_success: true, loggedInUsername: req.user.username });
-  }
-);
+app.post("/login", passport.authenticate("local"), function (req, res) {
+  res.send({ login_success: true, loggedInUsername: req.user.username });
+});
 
 app.get("/login-success", (req, res) => {
   res.send({ login_success: true, loggedInUsername: req.user.username });

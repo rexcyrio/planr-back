@@ -111,30 +111,13 @@ app.get("/", (req, res) => {
   res.send("Express server is online");
 });
 
-app.post("/login", function (req, res, next) {
-  console.log("before");
-  passport.authenticate(
-    "local",
-    (function (err, user) {
-      console.log(user);
-      if (err) {
-        console.log("err");
-        return next(err); // will generate a 500 error
-      }
-      console.log("no error");
-      // Generate a JSON response reflecting signup
-      if (!user) {
-        console.log("no user");
-        return res.send({ login_success: false, loggedInUsername: null });
-      }
-      console.log("user available");
-      return res.send({
-        login_success: true,
-        loggedInUsername: user.username,
-      });
-    })(req, res, next)
-  );
-});
+app.post(
+  "/login",
+  passport.authenticate("local", {
+    successRedirect: "/private",
+    failureRedirect: "/login",
+  })
+);
 
 app.get("/login-success", (req, res) => {
   res.send({ login_success: true, loggedInUsername: req.user.username });

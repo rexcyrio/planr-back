@@ -118,7 +118,7 @@ app.post("/login", function (req, res, next) {
     (function (err, user) {
       console.log(user);
       if (err) {
-        console.log(err);
+        console.log("err");
         return next(err); // will generate a 500 error
       }
       console.log("no error");

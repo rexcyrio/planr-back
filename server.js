@@ -145,6 +145,7 @@ app.post("/api/signup", async (req, res) => {
     const newUserInfo = {
       username: username,
       password: hashedPassword,
+      links: [],
     };
 
     await mycollection.insertOne(newUserInfo);
@@ -163,6 +164,39 @@ app.delete("/api/logout", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`listening on http://localhost:${PORT}`);
+});
+
+app.get("/api/private/link", async (req, res) => {
+  try {
+    const username = req.query.username;
+    console.log(username);
+    const mycollection = client.db("mydb").collection("mycollection");
+
+    const userInfo = await mycollection.findOne(
+      { username: username },
+      { projection: { _id: 0, password: 0 } }
+    );
+    res.send({ username: userInfo.username, links: userInfo.links });
+  } catch (error) {
+    res.status(503).send({ error: error });
+  }
+});
+
+app.post("/api/private/link", async (req, res) => {
+  try {
+    const { username, link } = req.body;
+    console.log(username);
+    const mycollection = client.db("mydb").collection("mycollection");
+
+    const updatedUserInfo = await mycollection.findOneAndUpdate(
+      { username: username },
+      { $push: { links: link } },
+      { returnNewDocument: true }
+    );
+    res.send(updatedUserInfo);
+  } catch (error) {
+    res.status(503).send({ error: error });
+  }
 });
 
 // ===========================================================================

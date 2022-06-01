@@ -169,14 +169,13 @@ app.listen(PORT, () => {
 app.get("/api/private/link", async (req, res) => {
   try {
     const username = req.query.username;
-    console.log(username);
     const mycollection = client.db("mydb").collection("mycollection");
 
     const userInfo = await mycollection.findOne(
-      { username: username },
+      { username },
       { projection: { _id: 0, password: 0 } }
     );
-    res.send({ username: userInfo.username, links: userInfo.links });
+    res.send({ links: userInfo.links });
   } catch (error) {
     res.status(503).send({ error: error });
   }
@@ -185,15 +184,15 @@ app.get("/api/private/link", async (req, res) => {
 app.post("/api/private/link", async (req, res) => {
   try {
     const { username, link } = req.body;
-    console.log(username);
     const mycollection = client.db("mydb").collection("mycollection");
 
     const updatedUserInfo = await mycollection.findOneAndUpdate(
-      { username: username },
+      { username },
       { $push: { links: link } },
-      { returnNewDocument: true }
+      { returnDocument: "after" }
     );
-    res.send(updatedUserInfo);
+    console.log(updatedUserInfo.value.links);
+    res.send({ links: updatedUserInfo.value.links });
   } catch (error) {
     res.status(503).send({ error: error });
   }

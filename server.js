@@ -208,7 +208,6 @@ app.delete("/api/private/link", async (req, res) => {
       { $pull: { links: link } },
       { returnDocument: "after" }
     );
-    console.log(updatedUserInfo.value.links);
     res.send({ links: updatedUserInfo.value.links });
   } catch (error) {
     res.status(503).send({ error: error });

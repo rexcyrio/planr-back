@@ -103,6 +103,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+function formatErrorMessage(error) {
+  return `${error.name}: ${error.message}`;
+}
+
 // ============================================================================
 // routing start
 // ============================================================================
@@ -111,18 +115,46 @@ app.get("/", (req, res) => {
   res.send("Express server is online");
 });
 
-app.post("/api/login", passport.authenticate("local"), function (req, res) {
-  res.send({ login_success: true, loggedInUsername: req.user.username });
+app.post("/api/login", passport.authenticate("local"), async (req, res) => {
+  try {
+    const username = req.user.username;
+    const mycollection = client.db("mydb").collection("mycollection");
+    const userInfo = await mycollection.findOne({ username: username });
+    res.send({
+      login_success: true,
+      loggedInUsername: username,
+      userData: userInfo.userData ?? { links: [], notes: [] },
+    });
+  } catch (error) {
+    res.status(503).send({ error: formatErrorMessage(error) });
+  }
 });
 
-app.post("/api/is-authenticated", (req, res) => {
+app.post("/api/is-authenticated", async (req, res) => {
   const t = req?.user?.username;
-  const loggedInUsername = t === undefined ? null : t;
 
-  res.send({
-    isAuthenticated: req.isAuthenticated(),
-    loggedInUsername: loggedInUsername,
-  });
+  if (t === undefined) {
+    res.send({
+      isAuthenticated: false,
+      loggedInUsername: null,
+      userData: null,
+    });
+    return;
+  }
+
+  try {
+    const loggedInUsername = t;
+    const mycollection = client.db("mydb").collection("mycollection");
+    const userInfo = await mycollection.findOne({ username: loggedInUsername });
+
+    res.send({
+      isAuthenticated: true,
+      loggedInUsername: loggedInUsername,
+      userData: userInfo.userData ?? { links: [], notes: [] },
+    });
+  } catch (error) {
+    res.status(503).send({ error: formatErrorMessage(error) });
+  }
 });
 
 app.post("/api/is-username-available", async (req, res) => {
@@ -132,7 +164,7 @@ app.post("/api/is-username-available", async (req, res) => {
     const userInfo = await mycollection.findOne({ username: username });
     res.send({ isAvailable: userInfo === null });
   } catch (error) {
-    res.status(503).send({ error: error });
+    res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
 
@@ -145,13 +177,13 @@ app.post("/api/signup", async (req, res) => {
     const newUserInfo = {
       username: username,
       password: hashedPassword,
-      links: [],
+      userData: { links: [], notes: [] },
     };
 
     await mycollection.insertOne(newUserInfo);
     res.send({ signup_success: true });
   } catch (error) {
-    res.status(503).send({ signup_success: false, error: error });
+    res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
 
@@ -160,6 +192,24 @@ app.delete("/api/logout", (req, res) => {
     res.clearCookie("connect.sid");
     res.send({ logout_success: true });
   });
+});
+
+app.put("/api/update-data", async (req, res) => {
+  try {
+    const { username, userData } = req.body;
+    const mycollection = client.db("mydb").collection("mycollection");
+
+    await mycollection.updateOne(
+      { username: username },
+      {
+        $set: { userData: userData },
+      }
+    );
+
+    res.send({ update_success: true });
+  } catch (error) {
+    res.status(503).send({ error: formatErrorMessage(error) });
+  }
 });
 
 app.listen(PORT, () => {
@@ -223,7 +273,7 @@ app.post("/api/request-password-reset", async (req, res) => {
     sendEmail(email, resetPasswordLink);
     res.send({ email_sent_success: true });
   } catch (error) {
-    res.send({ error: error });
+    res.send({ error: formatErrorMessage(error) });
   }
 });
 
@@ -314,7 +364,7 @@ app.post("/api/verify-password-reset-credentials", async (req, res) => {
 
     res.send({ isPasswordResetCredentialsVerified: true });
   } catch (error) {
-    res.status(503).send({ error: error });
+    res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
 
@@ -333,6 +383,6 @@ app.put("/api/reset-password", async (req, res) => {
     );
     res.send({ reset_password_success: true });
   } catch (error) {
-    res.send({ error: error });
+    res.send({ error: formatErrorMessage(error) });
   }
 });

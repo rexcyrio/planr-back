@@ -4,7 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +28,6 @@
     "nodemon": "^2.0.16"
   },
   "engines": {
-    "node": "16.15.0"
+    "node": "16.15.1"
   }
 }

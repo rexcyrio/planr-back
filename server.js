@@ -231,7 +231,7 @@ app.get("/api/private/link", async (req, res) => {
   }
 });
 
-app.post("/api/private/link", async (req, res) => {
+app.post("/api/private/link/add-link", async (req, res) => {
   try {
     const { username, link } = req.body;
     const mycollection = client.db("mydb").collection("mycollection");
@@ -241,14 +241,13 @@ app.post("/api/private/link", async (req, res) => {
       { $push: { links: link } },
       { returnDocument: "after" }
     );
-    console.log(updatedUserInfo.value.links);
     res.send({ links: updatedUserInfo.value.links });
   } catch (error) {
     res.status(503).send({ error: error });
   }
 });
 
-app.delete("/api/private/link", async (req, res) => {
+app.delete("/api/private/link/get-links", async (req, res) => {
   try {
     const username = req.query.username;
     const { link } = req.body;

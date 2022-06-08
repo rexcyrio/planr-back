@@ -177,7 +177,8 @@ app.post("/api/signup", async (req, res) => {
     const newUserInfo = {
       username: username,
       password: hashedPassword,
-      userData: { links: [], notes: [] },
+      links: [],
+      notes: [],
     };
 
     await mycollection.insertOne(newUserInfo);
@@ -216,7 +217,7 @@ app.listen(PORT, () => {
   console.log(`listening on http://localhost:${PORT}`);
 });
 
-app.get("/api/private/link/get-link", async (req, res) => {
+app.get("/api/private/links/get-links", async (req, res) => {
   try {
     const username = req.query.username;
     const mycollection = client.db("mydb").collection("mycollection");
@@ -232,7 +233,7 @@ app.get("/api/private/link/get-link", async (req, res) => {
   }
 });
 
-app.post("/api/private/link/add-link", async (req, res) => {
+app.post("/api/private/links/add-link", async (req, res) => {
   try {
     const { username, link } = req.body;
     const mycollection = client.db("mydb").collection("mycollection");
@@ -249,13 +250,13 @@ app.post("/api/private/link/add-link", async (req, res) => {
   }
 });
 
-app.put("/api/private/link/update-links", async (req, res) => {
+app.put("/api/private/links/update-links", async (req, res) => {
   try {
     const { username, links } = req.body;
     const mycollection = client.db("mydb").collection("mycollection");
 
     const updatedUserInfo = await mycollection.findOneAndUpdate(
-      { username: username },
+      { username },
       {
         $set: { links: links },
       },
@@ -263,6 +264,58 @@ app.put("/api/private/link/update-links", async (req, res) => {
     );
 
     res.send({ links: updatedUserInfo.value.links });
+  } catch (error) {
+    res.status(503).send({ error: formatErrorMessage(error) });
+  }
+});
+
+app.get("/api/private/notes/get-notes", async (req, res) => {
+  try {
+    const username = req.query.username;
+    const mycollection = client.db("mydb").collection("mycollection");
+
+    const userInfo = await mycollection.findOne(
+      { username },
+      { projection: { _id: 0, password: 0 } }
+    );
+
+    res.send({ notes: userInfo.notes });
+  } catch (error) {
+    res.status(503).send({ error: formatErrorMessage(error) });
+  }
+});
+
+app.post("/api/private/notes/add-note", async (req, res) => {
+  try {
+    const { username, note } = req.body;
+    const mycollection = client.db("mydb").collection("mycollection");
+
+    const updatedUserInfo = await mycollection.findOneAndUpdate(
+      { username },
+      { $push: { notes: note } },
+      { returnDocument: "after" }
+    );
+
+    res.send({ notes: updatedUserInfo.value.notes });
+  } catch (error) {
+    res.status(503).send({ error: formatErrorMessage(error) });
+  }
+});
+
+app.put("/api/private/notes/update-notes", async (req, res) => {
+  try {
+    const { username, notes } = req.body;
+    const mycollection = client.db("mydb").collection("mycollection");
+
+    const updatedUserInfo = await mycollection.findOneAndUpdate(
+      { username },
+      {
+        $set: { notes: notes },
+      },
+      { returnDocument: "after" }
+    );
+
+    res.send({ notes: updatedUserInfo.value.notes });
   } catch (error) {
     res.status(503).send({ error: formatErrorMessage(error) });
   }

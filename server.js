@@ -225,9 +225,10 @@ app.get("/api/private/link", async (req, res) => {
       { username },
       { projection: { _id: 0, password: 0 } }
     );
+    
     res.send({ links: userInfo.links });
   } catch (error) {
-    res.status(503).send({ error: error });
+    res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
 
@@ -241,25 +242,29 @@ app.post("/api/private/link/add-link", async (req, res) => {
       { $push: { links: link } },
       { returnDocument: "after" }
     );
+
     res.send({ links: updatedUserInfo.value.links });
   } catch (error) {
-    res.status(503).send({ error: error });
+    res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
 
-app.delete("/api/private/link/get-links", async (req, res) => {
+app.put("/api/private/link/update-links", async (req, res) => {
   try {
-    const username = req.query.username;
-    const { link } = req.body;
+    const { username, links } = req.body;
     const mycollection = client.db("mydb").collection("mycollection");
-    const updatedUserInfo = await mycollection.findOneAndUpdate(
-      { username },
-      { $pull: { links: link } },
+
+    const updatedUserInfo = await mycollection.updateOne(
+      { username: username },
+      {
+        $set: { links: links },
+      },
       { returnDocument: "after" }
     );
+
     res.send({ links: updatedUserInfo.value.links });
   } catch (error) {
-    res.status(503).send({ error: error });
+    res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
 

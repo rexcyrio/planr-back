@@ -216,7 +216,7 @@ app.listen(PORT, () => {
   console.log(`listening on http://localhost:${PORT}`);
 });
 
-app.get("/api/private/link", async (req, res) => {
+app.get("/api/private/link/get-link", async (req, res) => {
   try {
     const username = req.query.username;
     const mycollection = client.db("mydb").collection("mycollection");
@@ -225,7 +225,7 @@ app.get("/api/private/link", async (req, res) => {
       { username },
       { projection: { _id: 0, password: 0 } }
     );
-    
+
     res.send({ links: userInfo.links });
   } catch (error) {
     res.status(503).send({ error: formatErrorMessage(error) });
@@ -254,7 +254,7 @@ app.put("/api/private/link/update-links", async (req, res) => {
     const { username, links } = req.body;
     const mycollection = client.db("mydb").collection("mycollection");
 
-    const updatedUserInfo = await mycollection.updateOne(
+    const updatedUserInfo = await mycollection.findOneAndUpdate(
       { username: username },
       {
         $set: { links: links },

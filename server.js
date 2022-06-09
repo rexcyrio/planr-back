@@ -12,6 +12,9 @@ const nodemailer = require("nodemailer");
 const { convert } = require("html-to-text");
 const cors = require("cors");
 require("dotenv").config();
+const linksController = require("./controller/linksController");
+const notesController = require("./controller/notesController");
+const formatErrorMessage = require("./helper/formatErrorMessage")
 
 const PORT = process.env.PORT || 3001;
 const client = new MongoClient(process.env.MONGODB_URI, {
@@ -103,10 +106,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-function formatErrorMessage(error) {
-  return `${error.name}: ${error.message}`;
-}
-
 // ============================================================================
 // routing start
 // ============================================================================
@@ -195,130 +194,16 @@ app.delete("/api/logout", (req, res) => {
   });
 });
 
-app.put("/api/update-data", async (req, res) => {
-  try {
-    const { username, userData } = req.body;
-    const mycollection = client.db("mydb").collection("mycollection");
+app.get("/api/private/links", linksController(client).get);
+app.post("/api/private/links", linksController(client).post);
+app.put("/api/private/links", linksController(client).put);
 
-    await mycollection.updateOne(
-      { username: username },
-      {
-        $set: { userData: userData },
-      }
-    );
-
-    res.send({ update_success: true });
-  } catch (error) {
-    res.status(503).send({ error: formatErrorMessage(error) });
-  }
-});
+app.get("/api/private/notes", notesController(client).get);
+app.post("/api/private/notes", notesController(client).post);
+app.put("/api/private/notes", notesController(client).put);
 
 app.listen(PORT, () => {
   console.log(`listening on http://localhost:${PORT}`);
-});
-
-app.get("/api/private/links/get-links", async (req, res) => {
-  try {
-    const username = req.query.username;
-    const mycollection = client.db("mydb").collection("mycollection");
-
-    const userInfo = await mycollection.findOne(
-      { username },
-      { projection: { _id: 0, password: 0 } }
-    );
-
-    res.send({ links: userInfo.links });
-  } catch (error) {
-    res.status(503).send({ error: formatErrorMessage(error) });
-  }
-});
-
-app.post("/api/private/links/add-link", async (req, res) => {
-  try {
-    const { username, link } = req.body;
-    const mycollection = client.db("mydb").collection("mycollection");
-
-    const updatedUserInfo = await mycollection.findOneAndUpdate(
-      { username },
-      { $push: { links: link } },
-      { returnDocument: "after" }
-    );
-
-    res.send({ links: updatedUserInfo.value.links });
-  } catch (error) {
-    res.status(503).send({ error: formatErrorMessage(error) });
-  }
-});
-
-app.put("/api/private/links/update-links", async (req, res) => {
-  try {
-    const { username, links } = req.body;
-    const mycollection = client.db("mydb").collection("mycollection");
-
-    const updatedUserInfo = await mycollection.findOneAndUpdate(
-      { username },
-      {
-        $set: { links: links },
-      },
-      { returnDocument: "after" }
-    );
-
-    res.send({ links: updatedUserInfo.value.links });
-  } catch (error) {
-    res.status(503).send({ error: formatErrorMessage(error) });
-  }
-});
-
-app.get("/api/private/notes/get-notes", async (req, res) => {
-  try {
-    const username = req.query.username;
-    const mycollection = client.db("mydb").collection("mycollection");
-
-    const userInfo = await mycollection.findOne(
-      { username },
-      { projection: { _id: 0, password: 0 } }
-    );
-
-    res.send({ notes: userInfo.notes });
-  } catch (error) {
-    res.status(503).send({ error: formatErrorMessage(error) });
-  }
-});
-
-app.post("/api/private/notes/add-note", async (req, res) => {
-  try {
-    const { username, note } = req.body;
-    const mycollection = client.db("mydb").collection("mycollection");
-
-    const updatedUserInfo = await mycollection.findOneAndUpdate(
-      { username },
-      { $push: { notes: note } },
-      { returnDocument: "after" }
-    );
-
-    res.send({ notes: updatedUserInfo.value.notes });
-  } catch (error) {
-    res.status(503).send({ error: formatErrorMessage(error) });
-  }
-});
-
-app.put("/api/private/notes/update-notes", async (req, res) => {
-  try {
-    const { username, notes } = req.body;
-    const mycollection = client.db("mydb").collection("mycollection");
-
-    const updatedUserInfo = await mycollection.findOneAndUpdate(
-      { username },
-      {
-        $set: { notes: notes },
-      },
-      { returnDocument: "after" }
-    );
-
-    res.send({ notes: updatedUserInfo.value.notes });
-  } catch (error) {
-    res.status(503).send({ error: formatErrorMessage(error) });
-  }
 });
 
 // ===========================================================================

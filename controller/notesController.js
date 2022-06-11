@@ -1,14 +1,15 @@
 const formatErrorMessage = require("../helper/formatErrorMessage");
+const ObjectId = require("mongodb").ObjectId;
 
 function notesController(client) {
   async function get(req, res) {
     try {
-      const username = req.query.username;
+      const userId = req.query.id;
       const mycollection = client.db("mydb").collection("mycollection");
 
       const userInfo = await mycollection.findOne(
-        { username },
-        { projection: { _id: 0, password: 0 } }
+        { _id: ObjectId(userId) },
+        { projection: { _id: 0, password: 0, links: 0 } }
       );
 
       res.send({ notes: userInfo.notes });
@@ -19,11 +20,11 @@ function notesController(client) {
 
   async function post(req, res) {
     try {
-      const { username, note } = req.body;
+      const { userId, note } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
       const updatedUserInfo = await mycollection.findOneAndUpdate(
-        { username },
+        { _id: ObjectId(userId) },
         { $push: { notes: note } },
         { returnDocument: "after" }
       );
@@ -36,11 +37,11 @@ function notesController(client) {
 
   async function put(req, res) {
     try {
-      const { username, notes } = req.body;
+      const { userId, notes } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
       const updatedUserInfo = await mycollection.findOneAndUpdate(
-        { username },
+        { _id: ObjectId(userId) },
         {
           $set: { notes: notes },
         },

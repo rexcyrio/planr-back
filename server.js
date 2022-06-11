@@ -14,7 +14,7 @@ const cors = require("cors");
 require("dotenv").config();
 const linksController = require("./controller/linksController");
 const notesController = require("./controller/notesController");
-const formatErrorMessage = require("./helper/formatErrorMessage")
+const formatErrorMessage = require("./helper/formatErrorMessage");
 
 const PORT = process.env.PORT || 3001;
 const client = new MongoClient(process.env.MONGODB_URI, {
@@ -122,7 +122,7 @@ app.post("/api/login", passport.authenticate("local"), async (req, res) => {
     res.send({
       login_success: true,
       loggedInUsername: username,
-      userData: userInfo.userData ?? { links: [], notes: [] },
+      userId: userInfo._id,
     });
   } catch (error) {
     res.status(503).send({ error: formatErrorMessage(error) });
@@ -136,7 +136,7 @@ app.post("/api/is-authenticated", async (req, res) => {
     res.send({
       isAuthenticated: false,
       loggedInUsername: null,
-      userData: null,
+      userId: null,
     });
     return;
   }
@@ -149,7 +149,7 @@ app.post("/api/is-authenticated", async (req, res) => {
     res.send({
       isAuthenticated: true,
       loggedInUsername: loggedInUsername,
-      userData: userInfo.userData ?? { links: [], notes: [] },
+      userId: userInfo._id,
     });
   } catch (error) {
     res.status(503).send({ error: formatErrorMessage(error) });

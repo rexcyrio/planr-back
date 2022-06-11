@@ -1,12 +1,18 @@
 const formatErrorMessage = require("../helper/formatErrorMessage");
+const ObjectId = require("mongodb").ObjectId;
 
 function linksController(client) {
   async function get(req, res) {
     try {
-      const username = req.query.username;
+      const userId = req.query.id;
+      console.log(userId);
       const mycollection = client.db("mydb").collection("mycollection");
-      const userInfo = await mycollection.findOne({ username: username });
-      console.log(userInfo);
+
+      const userInfo = await mycollection.findOne(
+        { _id: ObjectId(userId) },
+        { projection: { _id: 0, password: 0, notes: 0 } }
+      );
+
       res.send({ links: userInfo.links });
     } catch (error) {
       res.status(503).send({ error: formatErrorMessage(error) });
@@ -15,11 +21,11 @@ function linksController(client) {
 
   async function post(req, res) {
     try {
-      const { username, link } = req.body;
+      const { userId, link } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
       const updatedUserInfo = await mycollection.findOneAndUpdate(
-        { username },
+        { _id: ObjectId(userId) },
         { $push: { links: link } },
         { returnDocument: "after" }
       );
@@ -32,11 +38,11 @@ function linksController(client) {
 
   async function put(req, res) {
     try {
-      const { username, links } = req.body;
+      const { userId, links } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
       const updatedUserInfo = await mycollection.findOneAndUpdate(
-        { username },
+        { _id: ObjectId(userId) },
         {
           $set: { links: links },
         },

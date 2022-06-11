@@ -29,7 +29,11 @@ function notesController(client) {
         { returnDocument: "after" }
       );
 
-      res.send({ notes: updatedUserInfo.value.notes });
+      if (updatedUserInfo.value.notes.at(-1)._id === note._id) {
+        res.send({ addNoteSuccess: true });
+      } else {
+        throw new Error("Database failed to add note");
+      }
     } catch (error) {
       res.status(503).send({ error: formatErrorMessage(error) });
     }
@@ -40,7 +44,7 @@ function notesController(client) {
       const { userId, notes } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
-      const updatedUserInfo = await mycollection.findOneAndUpdate(
+      await mycollection.findOneAndUpdate(
         { _id: ObjectId(userId) },
         {
           $set: { notes: notes },
@@ -48,7 +52,7 @@ function notesController(client) {
         { returnDocument: "after" }
       );
 
-      res.send({ notes: updatedUserInfo.value.notes });
+      res.send({ updateNotesSuccess: true });
     } catch (error) {
       res.status(503).send({ error: formatErrorMessage(error) });
     }

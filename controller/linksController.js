@@ -5,7 +5,6 @@ function linksController(client) {
   async function get(req, res) {
     try {
       const userId = req.query.id;
-      console.log(userId);
       const mycollection = client.db("mydb").collection("mycollection");
 
       const userInfo = await mycollection.findOne(
@@ -30,7 +29,11 @@ function linksController(client) {
         { returnDocument: "after" }
       );
 
-      res.send({ links: updatedUserInfo.value.links });
+      if (updatedUserInfo.value.links.at(-1)._id === link._id) {
+        res.send({ addLinkSuccess: true });
+      } else {
+        throw new Error(`Database failed to add link ${link.url}`);
+      }
     } catch (error) {
       res.status(503).send({ error: formatErrorMessage(error) });
     }
@@ -41,7 +44,7 @@ function linksController(client) {
       const { userId, links } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
-      const updatedUserInfo = await mycollection.findOneAndUpdate(
+      await mycollection.findOneAndUpdate(
         { _id: ObjectId(userId) },
         {
           $set: { links: links },
@@ -49,7 +52,7 @@ function linksController(client) {
         { returnDocument: "after" }
       );
 
-      res.send({ links: updatedUserInfo.value.links });
+      res.send({ updateLinksSuccess: true });
     } catch (error) {
       res.status(503).send({ error: formatErrorMessage(error) });
     }

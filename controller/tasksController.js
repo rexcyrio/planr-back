@@ -1,7 +1,7 @@
 const formatErrorMessage = require("../helper/formatErrorMessage");
 const ObjectId = require("mongodb").ObjectId;
 
-function linksController(client) {
+function tasksController(client) {
   async function get(req, res) {
     try {
       const userId = req.query.id;
@@ -9,10 +9,10 @@ function linksController(client) {
 
       const userInfo = await mycollection.findOne(
         { _id: ObjectId(userId) },
-        { projection: { _id: 0, password: 0, notes: 0, tasks: 0 } }
+        { projection: { _id: 0, password: 0, links: 0, notes: 0 } }
       );
 
-      res.send({ links: userInfo.links });
+      res.send({ tasks: userInfo.tasks });
     } catch (error) {
       res.status(503).send({ error: formatErrorMessage(error) });
     }
@@ -20,12 +20,12 @@ function linksController(client) {
 
   async function post(req, res) {
     try {
-      const { userId, link } = req.body;
+      const { userId, task } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
       const updateInfo = await mycollection.updateOne(
         { _id: ObjectId(userId) },
-        { $push: { links: link } }
+        { $push: { tasks: task } }
       );
 
       if (updateInfo.acknowledged) {
@@ -40,13 +40,13 @@ function linksController(client) {
 
   async function put(req, res) {
     try {
-      const { userId, links } = req.body;
+      const { userId, tasks } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
       const updateInfo = await mycollection.updateOne(
         { _id: ObjectId(userId) },
         {
-          $set: { links: links },
+          $set: { tasks: tasks },
         }
       );
 
@@ -67,4 +67,4 @@ function linksController(client) {
   };
 }
 
-module.exports = linksController;
+module.exports = tasksController;

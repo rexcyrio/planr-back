@@ -180,8 +180,13 @@ app.post("/api/signup", async (req, res) => {
       notes: [],
     };
 
-    await mycollection.insertOne(newUserInfo);
-    res.send({ signup_success: true });
+    const updateInfo = await mycollection.insertOne(newUserInfo);
+
+    if (updateInfo.acknowledged) {
+      res.send({});
+    } else {
+      throw new Error("acknowledged false");
+    }
   } catch (error) {
     res.status(503).send({ error: formatErrorMessage(error) });
   }

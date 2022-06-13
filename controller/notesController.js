@@ -23,16 +23,15 @@ function notesController(client) {
       const { userId, note } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
-      const updatedUserInfo = await mycollection.findOneAndUpdate(
+      const updateInfo = await mycollection.updateOne(
         { _id: ObjectId(userId) },
-        { $push: { notes: note } },
-        { returnDocument: "after" }
+        { $push: { notes: note } }
       );
 
-      if (updatedUserInfo.value.notes.at(-1)._id === note._id) {
-        res.send({ addNoteSuccess: true });
+      if (updateInfo.acknowledged) {
+        res.send({});
       } else {
-        throw new Error("Database failed to add note");
+        throw new Error("acknowledged false");
       }
     } catch (error) {
       res.status(503).send({ error: formatErrorMessage(error) });
@@ -44,15 +43,18 @@ function notesController(client) {
       const { userId, notes } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
-      await mycollection.findOneAndUpdate(
+      const updateInfo = await mycollection.updateOne(
         { _id: ObjectId(userId) },
         {
           $set: { notes: notes },
-        },
-        { returnDocument: "after" }
+        }
       );
 
-      res.send({ updateNotesSuccess: true });
+      if (updateInfo.acknowledged) {
+        res.send({});
+      } else {
+        throw new Error("acknowledged false");
+      }
     } catch (error) {
       res.status(503).send({ error: formatErrorMessage(error) });
     }

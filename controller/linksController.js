@@ -23,16 +23,15 @@ function linksController(client) {
       const { userId, link } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
-      const updatedUserInfo = await mycollection.findOneAndUpdate(
+      const updateInfo = await mycollection.updateOne(
         { _id: ObjectId(userId) },
-        { $push: { links: link } },
-        { returnDocument: "after" }
+        { $push: { links: link } }
       );
 
-      if (updatedUserInfo.value.links.at(-1)._id === link._id) {
-        res.send({ addLinkSuccess: true });
+      if (updateInfo.acknowledged) {
+        res.send({});
       } else {
-        throw new Error(`Database failed to add link ${link.url}`);
+        throw new Error("acknowledged false");
       }
     } catch (error) {
       res.status(503).send({ error: formatErrorMessage(error) });
@@ -44,15 +43,18 @@ function linksController(client) {
       const { userId, links } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
-      await mycollection.findOneAndUpdate(
+      const updateInfo = await mycollection.updateOne(
         { _id: ObjectId(userId) },
         {
           $set: { links: links },
-        },
-        { returnDocument: "after" }
+        }
       );
 
-      res.send({ updateLinksSuccess: true });
+      if (updateInfo.acknowledged) {
+        res.send({});
+      } else {
+        throw new Error("acknowledged false");
+      }
     } catch (error) {
       res.status(503).send({ error: formatErrorMessage(error) });
     }

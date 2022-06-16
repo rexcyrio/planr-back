@@ -9,7 +9,7 @@ function tasksController(client) {
 
       const userInfo = await mycollection.findOne(
         { _id: ObjectId(userId) },
-        { projection: { _id: 0, password: 0, links: 0, notes: 0 } }
+        { projection: { tasks: 1 } }
       );
 
       res.send({ tasks: userInfo.tasks });

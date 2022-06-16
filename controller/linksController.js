@@ -9,7 +9,7 @@ function linksController(client) {
 
       const userInfo = await mycollection.findOne(
         { _id: ObjectId(userId) },
-        { projection: { _id: 0, password: 0, notes: 0, tasks: 0 } }
+        { projection: { links: 1 } }
       );
 
       res.send({ links: userInfo.links });

@@ -9,7 +9,7 @@ function notesController(client) {
 
       const userInfo = await mycollection.findOne(
         { _id: ObjectId(userId) },
-        { projection: { _id: 0, password: 0, links: 0, tasks: 0 } }
+        { projection: { notes: 1 } }
       );
 
       res.send({ notes: userInfo.notes });

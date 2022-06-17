@@ -3,6 +3,7 @@ const ObjectId = require("mongodb").ObjectId;
 
 function controller(client, type) {
   const pluralType = type + "s";
+
   async function get(req, res) {
     try {
       const userId = req.query.id;
@@ -10,7 +11,9 @@ function controller(client, type) {
 
       const userInfo = await mycollection.findOne(
         { _id: ObjectId(userId) },
-        { projection: { [pluralType]: 1 } }
+        {
+          projection: { [pluralType]: 1 },
+        }
       );
 
       res.send({ [pluralType]: userInfo[pluralType] });
@@ -27,7 +30,9 @@ function controller(client, type) {
 
       const updateInfo = await mycollection.updateOne(
         { _id: ObjectId(userId) },
-        { $push: { [pluralType]: item } }
+        {
+          $push: { [pluralType]: item },
+        }
       );
 
       if (updateInfo.acknowledged) {

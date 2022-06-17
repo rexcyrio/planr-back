@@ -126,6 +126,7 @@ app.post("/api/login", passport.authenticate("local"), async (req, res) => {
       userId: userInfo._id,
     });
   } catch (error) {
+    console.error(error);
     res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
@@ -153,6 +154,7 @@ app.post("/api/is-authenticated", async (req, res) => {
       userId: userInfo._id,
     });
   } catch (error) {
+    console.error(error);
     res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
@@ -164,6 +166,7 @@ app.post("/api/is-username-available", async (req, res) => {
     const userInfo = await mycollection.findOne({ username: username });
     res.send({ isAvailable: userInfo === null });
   } catch (error) {
+    console.error(error);
     res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
@@ -190,14 +193,20 @@ app.post("/api/signup", async (req, res) => {
       throw new Error("acknowledged false");
     }
   } catch (error) {
+    console.error(error);
     res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
 
 app.delete("/api/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.clearCookie("connect.sid");
-    res.send({ logout_success: true });
+  req.session.destroy((error) => {
+    if (error) {
+      console.error(error);
+      res.send({ error: formatErrorMessage(error) });
+    } else {
+      res.clearCookie("connect.sid");
+      res.send({});
+    }
   });
 });
 
@@ -238,9 +247,10 @@ app.post("/api/request-password-reset", async (req, res) => {
     // send email
     const _id = updatedUserInfo._id;
     const resetPasswordLink = `${process.env.MAIN_URL}/reset-password/${_id}/${token}`;
-    sendEmail(email, resetPasswordLink);
-    res.send({ email_sent_success: true });
+    await sendEmail(email, resetPasswordLink);
+    res.send({});
   } catch (error) {
+    console.error(error);
     res.send({ error: formatErrorMessage(error) });
   }
 });
@@ -330,8 +340,9 @@ app.post("/api/verify-password-reset-credentials", async (req, res) => {
       return;
     }
 
-    res.send({ isPasswordResetCredentialsVerified: true });
+    res.send({});
   } catch (error) {
+    console.error(error);
     res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
@@ -349,8 +360,9 @@ app.put("/api/reset-password", async (req, res) => {
         $unset: { token: "", tokenExpireAt: "" },
       }
     );
-    res.send({ reset_password_success: true });
+    res.send({});
   } catch (error) {
+    console.error(error);
     res.send({ error: formatErrorMessage(error) });
   }
 });

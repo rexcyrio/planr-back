@@ -38,7 +38,7 @@ function controller(client, type) {
       if (updateInfo.acknowledged) {
         res.send({});
       } else {
-        throw new Error("acknowledged false");
+        throw new Error("Database failed to acknowledge request");
       }
     } catch (error) {
       console.error(error);
@@ -61,7 +61,7 @@ function controller(client, type) {
       if (updateInfo.acknowledged) {
         res.send({});
       } else {
-        throw new Error("acknowledged false");
+        throw new Error("Database failed to acknowledge request");
       }
     } catch (error) {
       console.error(error);

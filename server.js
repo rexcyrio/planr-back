@@ -190,7 +190,7 @@ app.post("/api/signup", async (req, res) => {
     if (updateInfo.acknowledged) {
       res.send({});
     } else {
-      throw new Error("acknowledged false");
+      throw new Error("Database failed to acknowledge request");
     }
   } catch (error) {
     console.error(error);

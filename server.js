@@ -15,7 +15,9 @@ require("dotenv").config();
 const linksController = require("./controller/linksController");
 const notesController = require("./controller/notesController");
 const tasksController = require("./controller/tasksController");
+const timetableController = require("./controller/timetableController");
 const formatErrorMessage = require("./helper/formatErrorMessage");
+const createEmptyTimetable = require("./helper/createEmptyTimetable");
 
 const PORT = process.env.PORT || 3001;
 const client = new MongoClient(process.env.MONGODB_URI, {
@@ -183,6 +185,7 @@ app.post("/api/signup", async (req, res) => {
       links: [],
       notes: [],
       tasks: [],
+      timetable: createEmptyTimetable(),
     };
 
     const updateInfo = await mycollection.insertOne(newUserInfo);
@@ -221,6 +224,9 @@ app.put("/api/private/notes", notesController(client).put);
 app.get("/api/private/tasks", tasksController(client).get);
 app.post("/api/private/tasks", tasksController(client).post);
 app.put("/api/private/tasks", tasksController(client).put);
+
+app.get("/api/private/timetable", timetableController(client).get);
+app.put("/api/private/timetable", timetableController(client).put);
 
 app.listen(PORT, () => {
   console.log(`listening on http://localhost:${PORT}`);

@@ -12,6 +12,12 @@ const nodemailer = require("nodemailer");
 const { convert } = require("html-to-text");
 const cors = require("cors");
 require("dotenv").config();
+const linksController = require("./controller/linksController");
+const notesController = require("./controller/notesController");
+const tasksController = require("./controller/tasksController");
+const timetableController = require("./controller/timetableController");
+const formatErrorMessage = require("./helper/formatErrorMessage");
+const createEmptyTimetable = require("./helper/createEmptyTimetable");
 
 const PORT = process.env.PORT || 3001;
 const client = new MongoClient(process.env.MONGODB_URI, {
@@ -103,10 +109,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-function formatErrorMessage(error) {
-  return `${error.name}: ${error.message}`;
-}
-
 // ============================================================================
 // routing start
 // ============================================================================
@@ -123,9 +125,10 @@ app.post("/api/login", passport.authenticate("local"), async (req, res) => {
     res.send({
       login_success: true,
       loggedInUsername: username,
-      userData: userInfo.userData ?? { links: [], notes: [] },
+      userId: userInfo._id,
     });
   } catch (error) {
+    console.error(error);
     res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
@@ -137,7 +140,7 @@ app.post("/api/is-authenticated", async (req, res) => {
     res.send({
       isAuthenticated: false,
       loggedInUsername: null,
-      userData: null,
+      userId: null,
     });
     return;
   }
@@ -150,9 +153,10 @@ app.post("/api/is-authenticated", async (req, res) => {
     res.send({
       isAuthenticated: true,
       loggedInUsername: loggedInUsername,
-      userData: userInfo.userData ?? { links: [], notes: [] },
+      userId: userInfo._id,
     });
   } catch (error) {
+    console.error(error);
     res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
@@ -164,6 +168,7 @@ app.post("/api/is-username-available", async (req, res) => {
     const userInfo = await mycollection.findOne({ username: username });
     res.send({ isAvailable: userInfo === null });
   } catch (error) {
+    console.error(error);
     res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
@@ -177,91 +182,54 @@ app.post("/api/signup", async (req, res) => {
     const newUserInfo = {
       username: username,
       password: hashedPassword,
-      userData: { links: [], notes: [] },
+      links: [],
+      notes: [],
+      tasks: [],
+      timetable: createEmptyTimetable(),
     };
 
-    await mycollection.insertOne(newUserInfo);
-    res.send({ signup_success: true });
+    const updateInfo = await mycollection.insertOne(newUserInfo);
+
+    if (updateInfo.acknowledged) {
+      res.send({});
+    } else {
+      throw new Error("Database failed to acknowledge request");
+    }
   } catch (error) {
+    console.error(error);
     res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
 
 app.delete("/api/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.clearCookie("connect.sid");
-    res.send({ logout_success: true });
+  req.session.destroy((error) => {
+    if (error) {
+      console.error(error);
+      res.send({ error: formatErrorMessage(error) });
+    } else {
+      res.clearCookie("connect.sid");
+      res.send({});
+    }
   });
 });
 
-app.put("/api/update-data", async (req, res) => {
-  try {
-    const { username, userData } = req.body;
-    const mycollection = client.db("mydb").collection("mycollection");
+app.get("/api/private/links", linksController(client).get);
+app.post("/api/private/links", linksController(client).post);
+app.put("/api/private/links", linksController(client).put);
 
-    await mycollection.updateOne(
-      { username: username },
-      {
-        $set: { userData: userData },
-      }
-    );
+app.get("/api/private/notes", notesController(client).get);
+app.post("/api/private/notes", notesController(client).post);
+app.put("/api/private/notes", notesController(client).put);
 
-    res.send({ update_success: true });
-  } catch (error) {
-    res.status(503).send({ error: formatErrorMessage(error) });
-  }
-});
+app.get("/api/private/tasks", tasksController(client).get);
+app.post("/api/private/tasks", tasksController(client).post);
+app.put("/api/private/tasks", tasksController(client).put);
+
+app.get("/api/private/timetable", timetableController(client).get);
+app.put("/api/private/timetable", timetableController(client).put);
 
 app.listen(PORT, () => {
   console.log(`listening on http://localhost:${PORT}`);
-});
-
-app.get("/api/private/link", async (req, res) => {
-  try {
-    const username = req.query.username;
-    const mycollection = client.db("mydb").collection("mycollection");
-
-    const userInfo = await mycollection.findOne(
-      { username },
-      { projection: { _id: 0, password: 0 } }
-    );
-    res.send({ links: userInfo.links });
-  } catch (error) {
-    res.status(503).send({ error: error });
-  }
-});
-
-app.post("/api/private/link", async (req, res) => {
-  try {
-    const { username, link } = req.body;
-    const mycollection = client.db("mydb").collection("mycollection");
-
-    const updatedUserInfo = await mycollection.findOneAndUpdate(
-      { username },
-      { $push: { links: link } },
-      { returnDocument: "after" }
-    );
-    console.log(updatedUserInfo.value.links);
-    res.send({ links: updatedUserInfo.value.links });
-  } catch (error) {
-    res.status(503).send({ error: error });
-  }
-});
-
-app.delete("/api/private/link", async (req, res) => {
-  try {
-    const username = req.query.username;
-    const { link } = req.body;
-    const mycollection = client.db("mydb").collection("mycollection");
-    const updatedUserInfo = await mycollection.findOneAndUpdate(
-      { username },
-      { $pull: { links: link } },
-      { returnDocument: "after" }
-    );
-    res.send({ links: updatedUserInfo.value.links });
-  } catch (error) {
-    res.status(503).send({ error: error });
-  }
 });
 
 // ===========================================================================
@@ -285,9 +253,10 @@ app.post("/api/request-password-reset", async (req, res) => {
     // send email
     const _id = updatedUserInfo._id;
     const resetPasswordLink = `${process.env.MAIN_URL}/reset-password/${_id}/${token}`;
-    sendEmail(email, resetPasswordLink);
-    res.send({ email_sent_success: true });
+    await sendEmail(email, resetPasswordLink);
+    res.send({});
   } catch (error) {
+    console.error(error);
     res.send({ error: formatErrorMessage(error) });
   }
 });
@@ -377,8 +346,9 @@ app.post("/api/verify-password-reset-credentials", async (req, res) => {
       return;
     }
 
-    res.send({ isPasswordResetCredentialsVerified: true });
+    res.send({});
   } catch (error) {
+    console.error(error);
     res.status(503).send({ error: formatErrorMessage(error) });
   }
 });
@@ -396,8 +366,9 @@ app.put("/api/reset-password", async (req, res) => {
         $unset: { token: "", tokenExpireAt: "" },
       }
     );
-    res.send({ reset_password_success: true });
+    res.send({});
   } catch (error) {
+    console.error(error);
     res.send({ error: formatErrorMessage(error) });
   }
 });

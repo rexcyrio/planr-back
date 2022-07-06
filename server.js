@@ -16,6 +16,12 @@ const linksController = require("./controller/linksController");
 const notesController = require("./controller/notesController");
 const tasksController = require("./controller/tasksController");
 const timetableController = require("./controller/timetableController");
+const modulesController = require("./controller/modulesController");
+
+const NUSModsURLController = require("./controller/NUSModsURLController");
+const themeNameController = require("./controller/themeNameController");
+const mappingModuleCodeToColourNameController = require("./controller/mappingModuleCodeToColourNameController");
+
 const formatErrorMessage = require("./helper/formatErrorMessage");
 const createEmptyTimetable = require("./helper/createEmptyTimetable");
 
@@ -186,6 +192,13 @@ app.post("/api/signup", async (req, res) => {
       notes: [],
       tasks: [],
       timetable: createEmptyTimetable(),
+      modules: [],
+
+      NUSModsURL: "",
+      themeName: "Eighties",
+      mappingModuleCodeToColourName: {
+        Others: "lightPink",
+      },
     };
 
     const updateInfo = await mycollection.insertOne(newUserInfo);
@@ -227,6 +240,24 @@ app.put("/api/private/tasks", tasksController(client).put);
 
 app.get("/api/private/timetable", timetableController(client).get);
 app.put("/api/private/timetable", timetableController(client).put);
+
+app.get("/api/private/modules", modulesController(client).get);
+app.put("/api/private/modules", modulesController(client).put);
+
+app.get("/api/private/NUSModsURL", NUSModsURLController(client).get);
+app.put("/api/private/NUSModsURL", NUSModsURLController(client).put);
+
+app.get("/api/private/themeName", themeNameController(client).get);
+app.put("/api/private/themeName", themeNameController(client).put);
+
+app.get(
+  "/api/private/mappingModuleCodeToColourName",
+  mappingModuleCodeToColourNameController(client).get
+);
+app.put(
+  "/api/private/mappingModuleCodeToColourName",
+  mappingModuleCodeToColourNameController(client).put
+);
 
 app.listen(PORT, () => {
   console.log(`listening on http://localhost:${PORT}`);

@@ -15,7 +15,6 @@ require("dotenv").config();
 const linksController = require("./controller/linksController");
 const notesController = require("./controller/notesController");
 const tasksController = require("./controller/tasksController");
-const timetableController = require("./controller/timetableController");
 const modulesController = require("./controller/modulesController");
 
 const NUSModsURLController = require("./controller/NUSModsURLController");
@@ -237,9 +236,6 @@ app.put("/api/private/notes", notesController(client).put);
 app.get("/api/private/tasks", tasksController(client).get);
 app.post("/api/private/tasks", tasksController(client).post);
 app.put("/api/private/tasks", tasksController(client).put);
-
-app.get("/api/private/timetable", timetableController(client).get);
-app.put("/api/private/timetable", timetableController(client).put);
 
 app.get("/api/private/modules", modulesController(client).get);
 app.put("/api/private/modules", modulesController(client).put);

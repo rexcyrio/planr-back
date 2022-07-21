@@ -1,7 +1,7 @@
-const formatErrorMessage = require("../helper/formatErrorMessage");
+const formatErrorMessage = require("./formatErrorMessage");
 const ObjectId = require("mongodb").ObjectId;
 
-function timetableController(client) {
+function controller2(client, type) {
   async function get(req, res) {
     try {
       const userId = req.query.id;
@@ -10,11 +10,11 @@ function timetableController(client) {
       const userInfo = await mycollection.findOne(
         { _id: ObjectId(userId) },
         {
-          projection: { timetable: 1 },
+          projection: { [type]: 1 },
         }
       );
 
-      res.send({ timetable: userInfo.timetable });
+      res.send({ [type]: userInfo[type] });
     } catch (error) {
       console.error(error);
       res.status(503).send({ error: formatErrorMessage(error) });
@@ -23,13 +23,13 @@ function timetableController(client) {
 
   async function put(req, res) {
     try {
-      const { userId, timetable } = req.body;
+      const { userId, [type]: item } = req.body;
       const mycollection = client.db("mydb").collection("mycollection");
 
       const updateInfo = await mycollection.updateOne(
         { _id: ObjectId(userId) },
         {
-          $set: { timetable: timetable },
+          $set: { [type]: item },
         }
       );
 
@@ -50,4 +50,4 @@ function timetableController(client) {
   };
 }
 
-module.exports = timetableController;
+module.exports = controller2;

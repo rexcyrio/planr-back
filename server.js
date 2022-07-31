@@ -19,7 +19,8 @@ const modulesController = require("./controller/modulesController");
 
 const NUSModsURLController = require("./controller/NUSModsURLController");
 const themeNameController = require("./controller/themeNameController");
-const mappingModuleCodeToColourNameController = require("./controller/mappingModuleCodeToColourNameController");
+const mappingTagToColourNameController = require("./controller/mappingTagToColourNameController");
+const userTagsController = require("./controller/userTagsController");
 
 const formatErrorMessage = require("./helper/formatErrorMessage");
 const createEmptyTimetable = require("./helper/createEmptyTimetable");
@@ -195,9 +196,10 @@ app.post("/api/signup", async (req, res) => {
 
       NUSModsURL: "",
       themeName: "Eighties",
-      mappingModuleCodeToColourName: {
+      mappingTagToColourName: {
         Others: "lightPink",
       },
+      userTags: ["Others"],
     };
 
     const updateInfo = await mycollection.insertOne(newUserInfo);
@@ -247,13 +249,17 @@ app.get("/api/private/themeName", themeNameController(client).get);
 app.put("/api/private/themeName", themeNameController(client).put);
 
 app.get(
-  "/api/private/mappingModuleCodeToColourName",
-  mappingModuleCodeToColourNameController(client).get
+  "/api/private/mappingTagToColourName",
+  mappingTagToColourNameController(client).get
 );
 app.put(
-  "/api/private/mappingModuleCodeToColourName",
-  mappingModuleCodeToColourNameController(client).put
+  "/api/private/mappingTagToColourName",
+  mappingTagToColourNameController(client).put
 );
+
+app.get("/api/private/userTags", userTagsController(client).get);
+app.post("/api/private/userTags", userTagsController(client).post);
+app.put("/api/private/userTags", userTagsController(client).put);
 
 app.listen(PORT, () => {
   console.log(`listening on http://localhost:${PORT}`);

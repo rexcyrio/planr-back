@@ -262,7 +262,7 @@ app.post("/api/private/userTags", userTagsController(client).post);
 app.put("/api/private/userTags", userTagsController(client).put);
 
 app.listen(PORT, () => {
-  console.log(`listening on http://localhost:${PORT}`);
+  console.log(`listening on port ${PORT}`);
 });
 
 // ===========================================================================
